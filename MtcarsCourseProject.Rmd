@@ -1,0 +1,110 @@
+---
+title: "Regression Models Course Project"
+author: "Anikó Medgyesi"
+date: '2017 január 8 '
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+#MTCars Dataset Analysis
+The exercise is about the analysis of MTCars dataset from  Motor Trend, a magazine about the automobile industry. Looking at a data set of a collection of cars, they are interested in exploring the relationship between a set of variables and miles per gallon (MPG) (outcome). They are particularly interested in the following two questions:
+
+1.Is an automatic or manual transmission better for MPG?
+
+2.Quantify the MPG difference between automatic and manual transmissions?
+
+## Dataset description
+The data was extracted from the 1974 Motor Trend US magazine, and comprises fuel consumption and 10 aspects of automobile design and performance for 32 automobiles (1973-74 models).
+
+A data frame with 32 observations on 11 variables.
+
+[, 1]	 mpg	 Miles/(US) gallon
+[, 2]	 cyl	 Number of cylinders
+[, 3]	 disp	 Displacement (cu.in.)
+[, 4]	 hp	 Gross horsepower
+[, 5]	 drat	 Rear axle ratio
+[, 6]	 wt	 Weight (1000 lbs)
+[, 7]	 qsec	 1/4 mile time
+[, 8]	 vs	 V/S
+[, 9]	 am	 Transmission (0 = automatic, 1 = manual)
+[,10]	 gear	 Number of forward gears
+[,11]	 carb	 Number of carburetors
+
+Some of the variables should be considered as factors.
+```{r cars}
+data(mtcars)
+mtcars$am <- factor(mtcars$am, levels=c(0,1), labels=c('Automatic', 'Manual'))
+mtcars$cyl <- factor(mtcars$cyl)
+mtcars$vs <- factor(mtcars$vs)
+ mtcars$gear <- factor(mtcars$gear)
+ mtcars$carb <- factor(mtcars$carb)
+
+```
+
+## Connection between mpg and transmission.
+
+Based on exploratory data analysis it is seems to be that With manual transmission it is possible to reach a better mpg performance. See appendix.
+
+Let us check with a linear regression model:
+
+
+```{r model}
+fit1 <- lm(mpg ~ am, mtcars)
+summary(fit1)
+```
+
+We can see on the paremeters of linear modell that there is indeed a relationship between the am and mpg, with a switch to manual transmission it is likely that the mpg will be increased an avareage 7,24 mpg with p-value less then 0.001. The R-squared value 0.3598, so the the modell explains only the 36% of variance. 
+
+
+## What other parameters should be considered in the model?
+
+```{r model extension}
+analysis <- aov(mpg ~ ., data = mtcars)
+summary(analysis)
+```
+The analysis shows that we should integrate into the model the Weight(wt), Displacement(disp), and Number of cilinders(cyl)
+The new modell:
+
+
+```{r model2}
+fit2 <- lm(mpg ~ am + cyl + disp + wt, data = mtcars)
+summary(fit2)
+```
+The extended modell explains the 86% of the variance.
+
+The comparision of the two models:
+
+```{r modelcomp}
+anova(fit1,fit2)
+```
+This results in a p-value of 8.637e-08, so we can accept, that the fit2 modell is better then fit1.
+So the manual use of gears means  about 1.81 MPG increase. We can trust in our regression models, because our resdidials are approximately normally distributed. (see appendix)
+
+## Appendix
+Visualisation for mtcars data:
+```{r summary}
+summary(mtcars)
+require(graphics)
+pairs(mtcars, main = "mtcars data")
+
+```
+
+###Visualisation the Miles/gallon(mpg) based on Transmission(am).
+
+```{r mtcars, echo=FALSE}
+plot(mpg~am, mtcars, xlab = "Transmission (0 = automatic, 1 = manual)")
+```
+
+###Check residuals of fit1 if normally distributed
+```{r res1}
+par(mfrow = c(2,2))
+plot(fit1)
+```
+
+###Check residuals of fit2 if normally distributed
+```{r res2}
+par(mfrow = c(2,2))
+plot(fit2)
+```
